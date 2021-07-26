@@ -1,0 +1,139 @@
+/*=============================================
+RADIuS: Reentry Atmospheric DynamIcs Simulation
+=============================================*/
+Version 1.0
+
+/*======Created=By======*/
+	Evan Roelke
+	Entry systems Design Laboratory (EsDL)
+	Colorado Center of Astrodynamics Research (CCAR)
+	University of Colorado Boulder
+	
+/*======Credit======*/
+	Z. Putnam
+	M. Grant
+	B. Steinfeldt
+	Aeroassist Simulation (ASIM)
+	Georgia Institute of Technology
+	
+/*=======
+==About==
+=======*/
+/*======Description======*/
+	RADIuS Simulates re-entry flight mechanics of arbitrary-shaped vehicles and aerodynamics using a 
+4th-order Runge-Kutta integrator. Input structures are defined to allow user to define their own trajectory
+parameters, vehicle parameters, GNC laws, and simulation settings.
+
+/*======How=To=Run======*/
+1. default_in.py will create a default simulation input structure
+	planet: Earth, atm_mode = 1
+	vehicle: 45deg sphere cone, 2m backshell radius, 0.5m nose radius
+	aero: cd = 1.05, cl = 0, aoa = 0, aero_mode = 0 (const. cl/cd)
+	x0: h_atm = 150km, v_atm = 10km/s, fpa_atm = -5deg, [lat,lon,az_atm] = [0,0,90]
+	guid: none
+	nav: perfect knowledge
+	ctrl: none
+2. Alter all input structure with your own values, tables, etc
+3. run run_sim.py
+	output data structure can be found under Section 2: data structures
+
+/*======Section 1: Frames======*/
+N:{O,x,y,z}: inertial frame ( identical to planet-center inertial (PCI) )
+	-axes have origin at planet center, do not rotate or accelerate in space
+PCPF{O,xg,yg,zg}: planet-centered, planet-fixed frame
+	-axes rotate with planet
+	eg. v_N = d/dt (r_N) + cross(wP,r_N)
+PCPF_WR:{O,xE,yN,zD}: wind-relative, planet-relative frame
+	-dynamic pressure is calculated from velocity relative to the planet's rotation and wind
+	-NED frame (North-East-Down)
+	-frame-relative vector math: v_sc/wind = v_sc/planet - v_wind/planet (aka v_sc/planet + v_planet/wind)
+	
+/*======Section 2: Data Structures======*/
+Section 2.1: Input Data Structure:
+Input Data structures contain all entry state, vehicle state, and guidance/control/navigation (GNC) laws required to run the simulation.
+The input structure is as follows:
+	in.sim		Simulation Settings
+	in.veh		Vehicle Settings
+	in.guid		Guidance Settings
+	in.nav		Navigation Settings
+	in.ctrl		Control Settings
+	in.traj		Initial State Settings
+	in.p		Planet Model Settings
+
+	Section 2.1.1: Simulation Inputs; in.sim
+		in.sim.traj_rate: trajectory integration rate (Hz)
+		in.sim.data_rate: trajectory data storage rate (Hz)
+		in.sim.guid_rate: guidance system call rate (Hz)
+		in.sim.nav_rate: navigation system call rate (Hz)
+		in.sim.ctrl_rate: control system call rate (Hz)
+		in.sim.terminate: termination conditions
+			in.sim.terminate.val: termination values
+			in.sim.terminate.dir: directions
+				+1: positive crossing (in.sim.terminate.val increasing - eg. aerocapture)
+				-1: negative crossing (in.sim.terminate.val decreasing - eg. impact)
+			in.sim.terminate.var: termination variables
+				0: time, t
+				1: altitude, h
+				2: planet-relative velocity, vmag_pcpf
+				3: energy, xi
+		in.sim.earth_g: Earth gravitational acceleration (m/s2).
+		
+	Section 2.1.2: Vehicle Inputs; in.veh
+		
+	Section 2.1.3: Guidance Inputs; in.guid
+	
+	Section 2.1.4: Navitation Inputs; in.nav
+	
+	Section 2.1.5: Control Inputs; in.ctrl
+	
+	Section 2.1.6: Entry State Inputs; in.traj
+		in.traj.r0_pci: 	planet-centered inertial (PCI) position (m)
+		in.traj.r0_pcpf:  	planet-centered, planet-fixed initial position (m)
+		in.traj.v0_pci:		PCI velociy (m/s)
+		in.traj.v0_pcpf:	planet-centered, planet-fixed initial velocity (m/s)
+		in.traj.fpa0:		initial flight path angle (rad)
+		in.traj.lat0:		initial latitude (rad)
+		in.traj.lon0:		initial longitude (rad)
+		in.traj.az0:		initial azimuth (rad) - angular distance along horizon measured cw from North
+		in.traj.t0:			initial time (s)
+		in.traj.t_max:		maximum integration time (s)
+		in.traj.aoa0:		initial angle of attack (rad)
+		in.traj.phi0:		initial bank angle (rad)
+		in.traj.ssa0:		initial side slip angle (rad)
+		in.traj.dr0:		initial downrange (m)
+		in.traj.cr0:		initial crossrange (m)
+		
+	Section 2.1.7: Planet Model Inputs; in.p
+		in.p.planet:	planet name (str)
+		in.p.r_e:		equatorial radius, m
+		in.p.r_p:		polar radius, m
+		in.p.r_m:		mean radius, m
+		in.p.mass:		planet mass, kg
+		in.p.mu:		planet gravitational constant, m3/s2
+		in.p.g0:		planet surface gravity, m/s2
+		in.p.j2:		j2 harmonic
+		in.p.k:			sutton-graves constant, kg^(0.5/m)
+		in.p.omega:		angular velocity
+		in.p.atm:		atmospheric data struct (1000 x 7)
+			[altitude(m), density(kg/m3), pressure(Pa), temp(K), windE(m/s), windN(m/s), windV(m/s)]
+		
+Section 2.2: Guidance Data Structure:
+
+	
+Section 2.3: Control Data Structure:
+	
+Section 2.4: Navigation Data Structure:
+	
+Section 2.5: Planet Data Structure:
+	
+Section 2.6: Vehicle Data Structure:
+
+Section 2.7: Output Data Structure:
+
+
+
+
+
+
+
+
